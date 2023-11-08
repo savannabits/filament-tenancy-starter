@@ -151,18 +151,19 @@ class TenancyServiceProvider extends ServiceProvider
     private function prepareLivewireForTenancy(): void
     {
         Livewire::setUpdateRoute(function ($handle) {
-            return Route::post('/livewire/update', $handle)
+            return Route::post('/stima/update', $handle)
                 ->middleware(
-                    'web',
-                    'universal',
-                    Middleware\InitializeTenancyBySubdomain::class // or whatever tenancy middleware you use
-                );
+                    [
+                        'web',
+//                        Middleware\InitializeTenancyBySubdomain::class,
+                        'universal',
+                    ])->name('livewire.update');
         });
     }
 
     private function modifyStaticConfigs(): void
     {
-        Middleware\InitializeTenancyBySubdomain::$onFail = function () {
+        Middleware\InitializeTenancyBySubdomain::$onFail = function ($e) {
             return redirect(config('app.url'));
         };
     }

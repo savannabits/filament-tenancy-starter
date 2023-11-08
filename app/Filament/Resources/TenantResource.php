@@ -24,9 +24,30 @@ class TenantResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make([
-                    Forms\Components\TextInput::make('id')->required()->unique(table: 'tenants', ignoreRecord: true),
-                    Forms\Components\TextInput::make('name'),
-                ])
+                    Forms\Components\TextInput::make('name')
+                        ->required()
+                        ->unique(table:'tenants', ignoreRecord: true)->live(onBlur: true)
+                        ->afterStateUpdated(function(Forms\Set $set, $state) {
+                            $set('id', $slug = \Str::of($state)->slug('_')->toString());
+                            $set('domain', \Str::of($state)->slug()->toString());
+                        })->columnSpanFull(),
+                    Forms\Components\TextInput::make('id')
+                        ->label('Unique ID')
+                        ->required()
+                        ->unique(table: 'tenants', ignoreRecord: true),
+                    Forms\Components\TextInput::make('domain')
+                        ->label('Sub-Domain')
+                        ->required()
+                        ->unique(table: 'domains',ignoreRecord: true)
+                        ->prefix('https://')
+                        ->suffix(".".request()->getHost())
+                    ,
+                    Forms\Components\TextInput::make('email')->email(),
+                    Forms\Components\TextInput::make('phone')->tel(),
+                    Forms\Components\TextInput::make('mobile')->tel(),
+                    Forms\Components\ColorPicker::make('primary_color'),
+                    Forms\Components\ColorPicker::make('secondary_color'),
+                ])->columns()
             ]);
     }
 
