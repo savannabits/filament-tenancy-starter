@@ -3,10 +3,9 @@
 declare(strict_types=1);
 
 use Stancl\Tenancy\Database\Models\Domain;
-use Stancl\Tenancy\Database\Models\Tenant;
 
 return [
-    'tenant_model' => Tenant::class,
+    'tenant_model' => \Modules\Core\app\Models\Tenant::class,
     'id_generator' => Stancl\Tenancy\UUIDGenerator::class,
 
     'domain_model' => Domain::class,
@@ -16,10 +15,7 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => [
-        '127.0.0.1',
-        'localhost',
-    ],
+    'central_domains' => array_filter(array_merge([env('APP_BASE_DOMAIN','')], explode(',',env('CENTRAL_DOMAINS','')))),
 
     /**
      * Tenancy bootstrappers are executed when tenancy is initialized.
@@ -165,7 +161,7 @@ return [
     'features' => [
         // Stancl\Tenancy\Features\UserImpersonation::class,
         // Stancl\Tenancy\Features\TelescopeTags::class,
-        // Stancl\Tenancy\Features\UniversalRoutes::class,
+         Stancl\Tenancy\Features\UniversalRoutes::class,
          Stancl\Tenancy\Features\TenantConfig::class, // https://tenancyforlaravel.com/docs/v3/features/tenant-config
          Stancl\Tenancy\Features\CrossDomainRedirect::class, // https://tenancyforlaravel.com/docs/v3/features/cross-domain-redirect
          Stancl\Tenancy\Features\ViteBundler::class,
@@ -187,7 +183,7 @@ return [
         '--force' => true, // This needs to be true to run migrations in production.
         '--path' => [
             database_path('migrations/tenant'),
-            module_path('Core','/database/migrations/tenant'),
+            base_path('Modules/Core/database/migrations/tenant'),
         ],
         '--realpath' => true,
     ],

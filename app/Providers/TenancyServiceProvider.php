@@ -7,8 +7,10 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 use Stancl\JobPipeline\JobPipeline;
 use Stancl\Tenancy\Events;
+use Stancl\Tenancy\Features\UniversalRoutes;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
 use Stancl\Tenancy\Middleware;
@@ -103,6 +105,8 @@ class TenancyServiceProvider extends ServiceProvider
         $this->mapRoutes();
 
         $this->makeTenancyMiddlewareHighestPriority();
+        $this->modifyStaticConfigs();
+        $this->prepareLivewireForTenancy();
     }
 
     protected function bootEvents()
@@ -142,5 +146,24 @@ class TenancyServiceProvider extends ServiceProvider
         foreach (array_reverse($tenancyMiddleware) as $middleware) {
             $this->app[\Illuminate\Contracts\Http\Kernel::class]->prependToMiddlewarePriority($middleware);
         }
+    }
+
+    private function prepareLivewireForTenancy(): void
+    {
+        Livewire::setUpdateRoute(function ($handle) {
+            return Route::post('/livewire/update', $handle)
+                ->middleware(
+                    'web',
+                    'universal',
+                    Middleware\InitializeTenancyBySubdomain::class // or whatever tenancy middleware you use
+                );
+        });
+    }
+
+    private function modifyStaticConfigs(): void
+    {
+        Middleware\InitializeTenancyBySubdomain::$onFail = function () {
+            return redirect(config('app.url'));
+        };
     }
 }
