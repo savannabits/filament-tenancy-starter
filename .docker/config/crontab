@@ -1,0 +1,3 @@
+# do daily/weekly/monthly maintenance
+# min	hour	day	month	weekday	command
+*       *       *   *       *       cd /app && php artisan schedule:run >> /app/storage/logs/cron.log

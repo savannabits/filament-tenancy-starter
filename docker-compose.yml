@@ -1,0 +1,131 @@
+version: "3.7"
+services:
+    app:
+        build:
+            context: ./
+            network: host
+            dockerfile: ./.docker/Dockerfile
+            args:
+                UID: ${DOCKER_UID}
+                USER: ${DOCKER_HOST_USER}
+        image: ${DOCKER_IMAGE_NAME}
+        container_name: ${DOCKER_IMAGE_NAME}-app
+        restart: unless-stopped
+        working_dir: /app
+        extra_hosts:
+            - "thishost:172.17.0.1"
+            - "admin-sys-db.strathmore.edu:192.168.170.133"
+            - "su-sso.strathmore.edu:192.168.170.218"
+            - "pos.strathmore.edu:192.168.170.213"
+            - "ams.strathmore.edu:192.168.170.192"
+            - "juba.strathmore.edu:192.168.170.94"
+            - "kfs5.strathmore.edu:192.168.170.7"
+            - "mobilepay.strathmore.edu:192.168.170.192"
+        depends_on:
+            - redis
+        volumes:
+            - ./:/app:delegated
+            - /var/www:/var/www
+        networks:
+            - default
+    queue:
+        image: ${DOCKER_IMAGE_NAME}
+        container_name: ${DOCKER_IMAGE_NAME}-queue
+        depends_on:
+            - app
+        restart: unless-stopped
+        working_dir: /app
+        command: php artisan queue:work
+        extra_hosts:
+            - "thishost:172.17.0.1"
+            - "admin-sys-db.strathmore.edu:192.168.170.133"
+            - "su-sso.strathmore.edu:192.168.170.218"
+            - "pos.strathmore.edu:192.168.170.213"
+            - "ams.strathmore.edu:192.168.170.192"
+            - "juba.strathmore.edu:192.168.170.94"
+            - "kfs5.strathmore.edu:192.168.170.7"
+            - "mobilepay.strathmore.edu:192.168.170.192"
+        volumes:
+            - ./:/app:delegated
+            - /var/www:/var/www
+        networks:
+            - default
+    cron:
+        image: ${DOCKER_IMAGE_NAME}
+        container_name: ${DOCKER_IMAGE_NAME}-cron
+        depends_on:
+            - app
+        restart: unless-stopped
+        working_dir: /app
+        command: cron -f
+        extra_hosts:
+            - "thishost:172.17.0.1"
+            - "admin-sys-db.strathmore.edu:192.168.170.133"
+            - "su-sso.strathmore.edu:192.168.170.218"
+            - "pos.strathmore.edu:192.168.170.213"
+            - "ams.strathmore.edu:192.168.170.192"
+            - "juba.strathmore.edu:192.168.170.94"
+            - "kfs5.strathmore.edu:192.168.170.7"
+            - "mobilepay.strathmore.edu:192.168.170.192"
+        volumes:
+            - ./:/app:delegated
+            - /var/www:/var/www
+        networks:
+            - default
+    server:
+        image: nginx:alpine
+        container_name: ${DOCKER_IMAGE_NAME}-server
+        depends_on:
+            - app
+        restart: unless-stopped
+        ports:
+            - ${DOCKER_SERVER_EXPOSED_PORT}:80
+        environment:
+            APP_HOST: ${DOCKER_IMAGE_NAME}-app
+        volumes:
+            - ./:/app:delegated
+            - ./.docker/config/appserver.conf.template:/etc/nginx/templates/default.conf.template
+        networks:
+            - default
+    redis:
+        image: "redis:alpine"
+        container_name: ${DOCKER_IMAGE_NAME}-redis
+        restart: unless-stopped
+        ports:
+            - ${DOCKER_REDIS_EXPOSED_PORT}:6379
+        command: redis-server --requirepass ${REDIS_PASSWORD}
+        volumes:
+            - redis-data:/var/lib/redis
+        networks:
+            - default
+    websockets:
+        image: ${DOCKER_IMAGE_NAME}
+        container_name: ${DOCKER_IMAGE_NAME}-websockets
+        restart: unless-stopped
+        extra_hosts:
+            - "thishost:172.17.0.1"
+            - "admin-sys-db.strathmore.edu:192.168.170.133"
+            - "su-sso.strathmore.edu:192.168.170.218"
+            - "pos.strathmore.edu:192.168.170.213"
+            - "ams.strathmore.edu:192.168.170.192"
+            - "juba.strathmore.edu:192.168.170.94"
+            - "kfs5.strathmore.edu:192.168.170.7"
+            - "mobilepay.strathmore.edu:192.168.170.192"
+        depends_on:
+            - app
+        volumes:
+            - ./:/app:delegated
+            - /var/www:/var/www
+        command: php artisan websockets:serve
+        expose:
+            - "6001"
+        ports:
+            - "${DOCKER_WEBSOCKETS_EXPOSED_PORT}:6001"
+        networks:
+            - default
+volumes:
+    redis-data:
+networks:
+    default:
+        external: true
+        name: ${DOCKER_NETWORK_NAME}
