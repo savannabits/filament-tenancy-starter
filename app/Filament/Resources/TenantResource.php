@@ -34,10 +34,12 @@ class TenantResource extends Resource
                     Forms\Components\TextInput::make('id')
                         ->label('Unique ID')
                         ->required()
+                        ->disabled(fn($context) => $context !=='create')
                         ->unique(table: 'tenants', ignoreRecord: true),
                     Forms\Components\TextInput::make('domain')
                         ->label('Sub-Domain')
                         ->required()
+                        ->visible(fn($context) => $context ==='create')
                         ->unique(table: 'domains',ignoreRecord: true)
                         ->prefix('https://')
                         ->suffix(".".request()->getHost())

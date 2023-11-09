@@ -155,7 +155,7 @@ class TenancyServiceProvider extends ServiceProvider
                 ->middleware(
                     [
                         'web',
-//                        Middleware\InitializeTenancyBySubdomain::class,
+                        Middleware\InitializeTenancyBySubdomain::class,
                         'universal',
                     ])->name('livewire.update');
         });

@@ -3,13 +3,16 @@
 namespace App\Providers\Filament;
 
 use App\Models\User;
+use Closure;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Facades\FilamentColor;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -18,8 +21,10 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Modules\Core\Plugins\CorePlugin;
 use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use Stancl\Tenancy\Tenancy;
 
 class TenantAdminPanelProvider extends PanelProvider
 {
@@ -28,11 +33,7 @@ class TenantAdminPanelProvider extends PanelProvider
         return $panel
             ->id('tenant-admin')
             ->path('backend')
-            ->colors([
-                'primary' => Color::Indigo,
-            ])
             ->brandName(fn() => \Str::of(config('app.name'))->append(": ")->append(tenant()?->name ?: tenant()?->id)->upper())
-            ->brandLogo(fn() => 'TN')
             ->login()
             ->discoverResources(in: app_path('Filament/TenantAdmin/Resources'), for: 'App\\Filament\\TenantAdmin\\Resources')
             ->discoverPages(in: app_path('Filament/TenantAdmin/Pages'), for: 'App\\Filament\\TenantAdmin\\Pages')
@@ -60,6 +61,6 @@ class TenantAdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])->plugin(CorePlugin::make());
     }
 }

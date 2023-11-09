@@ -16,7 +16,9 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Modules\Core\Plugins\CorePlugin;
 use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -27,12 +29,13 @@ class TenantPortalPanelProvider extends PanelProvider
         return $panel
             ->id('tenant-portal')
             ->path('/')
-            ->colors([
-                'primary' => Color::Emerald,
-            ])
+            /*->colors([
+                'primary' => fn() => tenant()->primary_color ?: Color::Indigo,
+                'info' => fn() => tenant()->secondary_color ?: Color::Amber,
+            ])*/
             ->brandName(fn() => \Str::of(config('app.name'))->append(": ")->append(tenant()?->name ?: tenant()?->id)->upper())
-            ->brandLogo(fn() => 'TN')
             ->topNavigation()
+            ->registration(Pages\Auth\Register::class)
             ->login()
             ->discoverResources(in: app_path('Filament/TenantPortal/Resources'), for: 'App\\Filament\\TenantPortal\\Resources')
             ->discoverPages(in: app_path('Filament/TenantPortal/Pages'), for: 'App\\Filament\\TenantPortal\\Pages')
@@ -60,6 +63,10 @@ class TenantPortalPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])->plugin(CorePlugin::make()
+                ->registerResources(false)
+                ->registerPages(false)
+                ->registerWidgets(false)
+            );
     }
 }
