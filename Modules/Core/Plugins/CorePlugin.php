@@ -55,9 +55,13 @@ class CorePlugin implements Plugin
 
     public function boot(Panel $panel): void
     {
-        FilamentColor::register(fn() => [
+        /*FilamentColor::register(fn() => [
             'primary' => tenant()?->primary_color ?: Color::Indigo,
             'info' => tenant()?->secondary_color ?: Color::Amber,
+        ]);*/
+        FilamentColor::register([
+            'primary' => Color::Indigo,
+            'info' => Color::Amber,
         ]);
     }
 
