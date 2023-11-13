@@ -15,7 +15,7 @@ use Modules\Core\app\Http\Controllers\CoreController;
 */
 
 Route::group([], function () {
-    Route::get('/core/', function () {
+    /*Route::get('/', function () {
         return 'This is your modular, multi-tenant application. The id of the current tenant is ' . tenant('id');
-    });
+    });*/
 });

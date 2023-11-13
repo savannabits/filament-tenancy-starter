@@ -19,6 +19,7 @@ class TenancyServiceProvider extends ServiceProvider
 {
     // By default, no namespace is used to support the callable array syntax.
     public static string $controllerNamespace = '';
+    const TENANCY_IDENTIFICATION = Middleware\InitializeTenancyByDomain::class;
 
     public function events()
     {
@@ -151,20 +152,20 @@ class TenancyServiceProvider extends ServiceProvider
     private function prepareLivewireForTenancy(): void
     {
         Livewire::setUpdateRoute(function ($handle) {
-            return Route::post('/stima/update', $handle)
+            return Route::post('/livewire/update', $handle)
                 ->middleware(
                     [
                         'web',
-                        Middleware\InitializeTenancyBySubdomain::class,
                         'universal',
+                        static::TENANCY_IDENTIFICATION,
                     ])->name('livewire.update');
         });
     }
 
     private function modifyStaticConfigs(): void
     {
-        Middleware\InitializeTenancyBySubdomain::$onFail = function ($e) {
+        /*Middleware\InitializeTenancyBySubdomain::$onFail = function ($e) {
             return redirect(config('app.url'));
-        };
+        };*/
     }
 }

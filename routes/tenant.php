@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Providers\TenancyServiceProvider;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain;
-use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
@@ -23,7 +22,7 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 Route::middleware([
     'web',
     'universal',
-    InitializeTenancyBySubdomain::class,
+    TenancyServiceProvider::TENANCY_IDENTIFICATION,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
     /*Route::get('/', function () {

@@ -169,6 +169,7 @@ return [
         App\Providers\EventServiceProvider::class,
         \App\Providers\Filament\AdminPanelProvider::class,
         App\Providers\Filament\TenantAdminPanelProvider::class,
+        App\Providers\Filament\CentralPortalPanelProvider::class,
         App\Providers\Filament\TenantPortalPanelProvider::class,
         App\Providers\RouteServiceProvider::class,
         \App\Providers\TenancyServiceProvider::class

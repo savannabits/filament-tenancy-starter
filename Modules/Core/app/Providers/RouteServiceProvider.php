@@ -52,7 +52,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::middleware([
             'web',
             'universal',
-            InitializeTenancyBySubdomain::class,
+            InitializeTenancyByDomainOrSubdomain::class,
             PreventAccessFromCentralDomains::class
         ])
             ->namespace($this->moduleNamespace)

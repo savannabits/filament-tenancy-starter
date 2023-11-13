@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Providers\TenancyServiceProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -19,6 +20,8 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Modules\Core\Plugins\CorePlugin;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain;
 use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -27,15 +30,10 @@ class TenantPortalPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->id('tenant-portal')
-            ->path('/')
-            /*->colors([
-                'primary' => fn() => tenant()->primary_color ?: Color::Indigo,
-                'info' => fn() => tenant()->secondary_color ?: Color::Amber,
-            ])*/
+            ->id('tenantPortal')
+            ->path('')
             ->brandName(fn() => \Str::of(config('app.name'))->append(": ")->append(tenant()?->name ?: tenant()?->id)->upper())
             ->topNavigation()
-            ->registration(Pages\Auth\Register::class)
             ->login()
             ->discoverResources(in: app_path('Filament/TenantPortal/Resources'), for: 'App\\Filament\\TenantPortal\\Resources')
             ->discoverPages(in: app_path('Filament/TenantPortal/Pages'), for: 'App\\Filament\\TenantPortal\\Pages')
@@ -48,7 +46,6 @@ class TenantPortalPanelProvider extends PanelProvider
                 Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
-                'universal',
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
@@ -58,9 +55,12 @@ class TenantPortalPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                InitializeTenancyBySubdomain::class,
-                PreventAccessFromCentralDomains::class
-            ])
+            ])->middleware([
+                'universal',
+                TenancyServiceProvider::TENANCY_IDENTIFICATION,
+                PreventAccessFromCentralDomains::class,
+            ], isPersistent: true)
+//            ->domains(fn() => tenant()?->domains()->pluck('domain'))
             ->authMiddleware([
                 Authenticate::class,
             ])->plugin(CorePlugin::make()

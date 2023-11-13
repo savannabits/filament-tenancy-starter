@@ -9,6 +9,7 @@ use Filament\Support\Assets\Theme;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentColor;
+use Modules\Core\app\Http\Middleware\ApplyPanelColorsMiddleware;
 use Modules\Core\app\Http\Middleware\RedirectIfInertiaMiddleware;
 
 class CorePlugin implements Plugin
@@ -30,7 +31,7 @@ class CorePlugin implements Plugin
     public function register(Panel $panel): void
     {
         FilamentAsset::register([
-            Theme::make($this->getId(), __DIR__ . '/../../resources/dist/theme.css'),
+            Theme::make($this->getId(), __DIR__ . '/../resources/dist/theme.css'),
         ]);
         $panel->navigationGroups([
             NavigationGroup::make(static::getNavigationGroupLabel()),
@@ -38,18 +39,19 @@ class CorePlugin implements Plugin
         ])
             ->middleware([
                 RedirectIfInertiaMiddleware::class,
+                ApplyPanelColorsMiddleware::class,
             ])
             ->theme($this->getId())
             ->maxContentWidth('screen-2xl');
 
         if ($this->shouldRegisterPages()) {
-            $panel->discoverPages(in: __DIR__ . '/../Filament/Pages', for: 'Modules\\Core\\app\\Filament\\Pages');
+            $panel = $panel->discoverPages(in: __DIR__ . '/../Filament/Pages', for: 'Modules\\Core\\app\\Filament\\Pages');
         }
         if ($this->shouldRegisterResources()) {
-            $panel->discoverResources(in: __DIR__ . '/../Filament/Resources', for: 'Modules\\Core\\app\\Filament\\Resources');
+            $panel = $panel->discoverResources(in: __DIR__ . '/../Filament/Resources', for: 'Modules\\Core\\app\\Filament\\Resources');
         }
         if ($this->shouldRegisterWidgets()) {
-            $panel->discoverResources(in: __DIR__ . '/../Filament/Widgets', for: 'Modules\\Core\\app\\Filament\\Widgets');
+            $panel = $panel->discoverResources(in: __DIR__ . '/../Filament/Widgets', for: 'Modules\\Core\\app\\Filament\\Widgets');
         }
     }
 
@@ -59,10 +61,6 @@ class CorePlugin implements Plugin
             'primary' => tenant()?->primary_color ?: Color::Indigo,
             'info' => tenant()?->secondary_color ?: Color::Amber,
         ]);*/
-        FilamentColor::register([
-            'primary' => Color::Indigo,
-            'info' => Color::Amber,
-        ]);
     }
 
     public static function make(): static
